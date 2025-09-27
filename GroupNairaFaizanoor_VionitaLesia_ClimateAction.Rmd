@@ -1,0 +1,330 @@
+---
+title: "Keep The earth Clean"
+author: " 1. Naira Faizanoor - 2702241465 2. Vionita Lesia - 2702238312 "
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+---
+##Judul Project : 
+Keep The Earth Clean
+
+##Latar Belakang Singkat :
+Kami memilih SDG 13 yang bertemakan "Climate Action" karena kami menyadari bahwa kualitas udara yang kita hirup sehari-hari dapat membahayakan kesehatan tubuh kita. Hal ini terjadi karena banyaknya jumlah partikel-partikel berukuran mikro yang hanya dapat terlihat dari bawah mikroskop yang berterbangan bebas bersama udara yang kita hirup sehari-hari. Maka dari itu kami tertarik untuk mengetahui partikel apa saja yang terkandung dalam udara sehari-hari. 
+
+Pada project ini kami mengambil data dari Satu Data Indonesia dengan judul “Indeks Standar Pencemaran Udara (ISPU) Tahun 2021”. (https://katalog.data.go.id/dataset/indeks-standar-pencemaran-udara-ispu-tahun-2021)
+
+Setelah mengerjakan laporan ini, kami berharap agar orang-orang dapat lebih waspada dengan udara disekitarnya, karena udara yang terlihat bersih belum tentu sepenuhnya sehat. Kami juga berharap agar masyarakat dapat bahu membahu dalam meningkatkan kesehatan udara.
+
+##Data Explanation : 
+1. PM 10 : Particulate Matter 10, partikel udara yang berukuran lebih kecil dari 10 mikron (mikrometer).
+2. PM 2.5 : Particulate Matter 2.5, partikel udara yang berukuran lebih kecil dari 2.5 mikron (mikrometer). 
+3. SO2 : Sulphur Dioxide
+4. CO : Carbon Monoxide
+5. O3 : Ozon
+6. NO2 : Nitrogen Dioxide
+7. Max : Nilai tertinggi yang yang dimiliki oleh partikel-partikel udara 
+8. Critical : Partikel yang memiliki nilai tertinggi 
+9. Categori : Kategori kualitas udara
+
+###Notes
+Data yang tertera pada Excel yang kami gunakan tertulis "PM 25". Sedangkan menurut riset kami Particulate Matter (PM) hanya terdapat PM 2.5 dan PM 10, dengan penjelasan bahwa PM 2.5 adalah partikel terendah dan PM 10 adalah partikel tertinggi. Berdasarkan riset ini, memungkinkan bahwa data yang kami gunakan tidak sempurna (terdapat kesalahan penulisan pada penamaan data). 
+
+
+###Importing library
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(plotly)
+library(dplyr)
+library(ggplot2)
+```
+
+###Importing dataset
+```{r}
+data = read.csv(file.choose(), sep = ",", header = T)
+data
+```
+
+###Untuk memberi tahu bahwa "---" dan "  " adalah NA
+```{r}
+data[data == "---" | data == "" | data == "TIDAK ADA DATA"] <- NA
+df <- data
+print(df)
+```
+
+###Filter the rows of the data frame df where the value in the critical column is not equal to "BAIK".
+```{r}
+df <- df[df$critical != "BAIK", ]
+```
+
+
+###To seach missing value
+```{r}
+
+is.na(df)
+```
+###Untuk mencari tahu jumlah missing value
+```{r}
+sum(is.na(df))
+```
+###Untuk caritahu dimana letak missing value (titiknya)
+```{r}
+which(is.na(df))
+```
+###Untuk mengetahui nilai yang sering muncul(modus) pada bagian "critical"
+```{r}
+mode_value <- names(sort(table(df$critical), decreasing = TRUE))[1]
+
+print(mode_value)
+```
+###Untuk mengisi missing values di bagian "critical"
+```{r}
+df$critical[is.na(df$critical)] <- mode_value
+```
+
+###Untuk mengetahui nilai yang sering muncul(modus) pada bagian "kategori"
+```{r}
+mode_value <- names(sort(table(df$categori), decreasing = TRUE))[1]
+
+print(mode_value)
+```
+
+###Untuk mengisi missing values di bagian "categori"
+```{r}
+df$categori[is.na(df$categori)] <- mode_value
+```
+
+###untuk check jumlah missing values
+```{r}
+sum(is.na(df))
+```
+###Calculate the mean in pm25 to replace the NA values
+```{r}
+# Display the structure of the dataframe
+str(df)
+
+# Check the class of the pm25 column
+print(class(df$pm25))
+
+# Convert the pm25 column to numeric if necessary
+df$pm25 <- as.numeric(as.character(df$pm25))
+
+# Identify non-numeric values in the pm25 column
+non_numeric_values <- df$pm25[is.na(as.numeric(as.character(df$pm25)))]
+print(non_numeric_values)
+
+# Calculate the mean, ignoring NA values
+mean_pm <- mean(df$pm25, na.rm = TRUE)
+
+# Convert the mean to an integer
+rounded_mean <- as.integer(mean_pm)
+
+# Print the integer mean
+print(rounded_mean)
+```
+###Replacing all the NA values in pm25
+```{r}
+df$pm25[is.na(df$pm25)] <- rounded_mean
+```
+
+###Calculating the mean on pm10 cathegory and make it an integer
+```{r}
+# Display the structure of the dataframe
+str(df)
+
+# Check the class of the pm10 column
+print(class(df$pm10))
+
+# Convert the pm10 column to numeric if necessary
+df$pm10 <- as.numeric(as.character(df$pm10))
+
+# Identify non-numeric values in the pm10 column
+non_numeric_values <- df$pm10[is.na(as.numeric(as.character(df$pm10)))]
+print(non_numeric_values)
+
+# Calculate the mean, ignoring NA values
+mpm10 <- mean(df$pm10, na.rm = TRUE)
+
+# Convert the mean to an integer
+mpm10 <- as.integer(mpm10)
+
+# Print the integer mean
+print(mpm10)
+
+```
+###Replacing all the NA values in pm10
+```{r}
+df$pm10[is.na(df$pm10)] <- mpm10
+```
+
+###Calculating the mean on SO2 column
+```{r}
+# Convert the so2 column to numeric and handle non-numeric values
+df$so2 <- as.numeric(as.character(df$so2))
+
+# Calculate the mean of the so2 column, ignoring NA values, and convert to integer
+so2_mean <- as.integer(mean(df$so2, na.rm = TRUE))
+
+# Print the integer mean
+print(so2_mean)
+```
+###Replacing all the NA values in 'SO2' column
+```{r}
+df$so2[is.na(df$so2)] <- so2_mean
+```
+
+###calculating mean and replace it on 'co' column
+```{r}
+# Convert column to numeric and handle non-numeric values
+df$co <- as.numeric(as.character(df$co))
+
+# Calculate the mean of the column, ignoring NA values, and convert to integer
+co_mean <- as.integer(mean(df$co, na.rm = TRUE))
+
+# Print the integer mean
+print(co_mean)
+
+#Replacing the NA values in the dataset with the mean value
+df$co[is.na(df$co)] <- co_mean
+```
+
+###Calculating mean and replace it on 'o3' column
+```{r}
+# Convert column to numeric and handle non-numeric values
+df$o3 <- as.numeric(as.character(df$o3))
+
+# Calculate the mean of the column, ignoring NA values, and convert to integer
+omean <- as.integer(mean(df$o3, na.rm = TRUE))
+
+# Print the integer mean
+print(omean)
+
+#Replacing the NA values in the dataset with the mean value
+df$o3[is.na(df$o3)] <- omean
+```
+
+###Calculating mean and replace it on 'no2' column
+```{r}
+# Convert column to numeric and handle non-numeric values
+df$no2 <- as.numeric(as.character(df$no2))
+
+# Calculate the mean of the column, ignoring NA values, and convert to integer
+nomean <- as.integer(mean(df$no2, na.rm = TRUE))
+
+# Print the integer mean
+print(nomean)
+
+#Replacing the NA values in the dataset with the mean value
+df$no2[is.na(df$no2)] <- nomean
+```
+
+###Identifying if there's still any missing value
+```{r}
+colSums(is.na(df))
+```
+
+###Identifying outlier in each section
+####checking outlier in 'stasiun'
+```{r}
+
+bp1 <- plot_ly(df, y = ~stasiun, type = 'box')
+bp1
+```
+
+####checking outlier in 'pm10'
+```{r}
+bp2 <- plot_ly(df, y = ~pm10, type = 'box')
+bp2
+```
+####checking outlier in 'pm25'
+```{r}
+bp3 <- plot_ly(df, y = ~pm25, type = 'box')
+bp3
+```
+####checking outlier in 'so2'
+```{r}
+bp4 <- plot_ly(df, y = ~so2, type = 'box')
+bp4
+```
+####checking outlier in 'co', 'o3', 'no2', 'max', 'critical', and 'categori'
+```{r}
+bp5 <- plot_ly(df, y = ~co, type = 'box')
+bp5
+
+bp6 <- plot_ly(df, y = ~o3, type = 'box')
+bp6
+
+bp7 <- plot_ly(df, y = ~no2, type = 'box')
+bp7
+
+bp8 <- plot_ly(df, y = ~max, type = 'box')
+bp8
+
+bp9 <- plot_ly(df, y = ~critical, type = 'box')
+bp9
+
+bp10 <- plot_ly(df, y = ~categori, type = 'box')
+bp10
+```
+
+### Korelasi antara stasiun dan kategori
+```{r}
+# Aggregate the data by stasiun and categori
+agg_data <- df %>%
+  group_by(stasiun, categori) %>%
+  summarise(count = n())
+
+# Create the stacked bar plot
+ggplot(agg_data, aes(x = stasiun, y = count, fill = categori)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Stacked Bar Chart of Stasiun by Categori",
+       x = "Stasiun",
+       y = "Count",
+       fill = "Categori") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+Dari graph diatas kita dapat melihat tingkat kategori kualitas udara yang ada di beberapa titik di kota Jakarta. Dapat dilihat pada grafik di atas rata-rata kualitas udara di titik-titik tersebut berada di kategori yang sedang, namun pada daerah Lubang Buaya terlihat kualitas udara disana cenderung lebih ke kategori "tidak sehat" dibandingkan wilayah-wilayah lainnya, yang menjadikannya sebagai wilayah dengan kualitas udara yang terburuk diantara kelimanya. Untuk DKI 1 atau Bundaran HI merupakan titik yang mempunyai kualitas udara yang cenderung paling baik diantara 4 wilayah lainnya karena pada Bundaran HI kualitas udara yang berada dikategori "baik" paling banyak diantara tempat-tempat lainnya.
+
+
+###Korelasi antara critical dan categori
+```{r}
+agg_data <- df %>%
+  group_by(critical, categori) %>%
+  summarise(count = n())
+
+# Create the stacked bar plot
+ggplot(agg_data, aes(x = critical, y = count, fill = categori)) +
+  geom_bar(stat = "identity") +
+  theme_minimal() +
+  labs(title = "Stacked Bar Chart of Critical by Categori",
+       x = "Critical",
+       y = "Count",
+       fill = "Categori") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+There are 3 chemical compounds contained and air particulates measuring 10 and 2.5 micrometers. These chemical compounds include, CO (carbon monoxide), SO3 (sulfur trioxide), SO2 (sulfur dioxide). Airborne particulates are also called dust. Dust itself is a solid or liquid object in the form of smoke, dust or vapor which over time will remain in the atmosphere for a long period of time. From this data, the PM 2.5 content greatly influences air quality, one of which is in Jakarta. PM 2.5 has 3 category levels, namely, unhealthy, moderate and good. Where the "medium" category dominates the content itself. The content that has the least or least influence on pollution in Jakarta is SO2 or sulfur dioxide. PM 2.5, also known as fine particles, refers to particles or small droplets in the air that are 2 ½ microns wide or less. The largest PM 2.5 particles are about 30 times smaller than a human hair.
+
+
+### Korelasi antara bulan dan critical
+```{r}
+df$month <- format(as.Date(df$tanggal), "%B")  
+
+# Remove rows with NA values
+df <- df[complete.cases(df),]
+
+# Convert month to factor with desired order
+df$month <- factor(df$month, levels = c("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"))
+
+# Plotting code
+ggplot(df, aes(x = month, fill = critical)) +
+  geom_bar(position = "stack", color = "black", width = 0.7) +
+  labs(title = "Stacked Bar Chart of Critical by Month",
+       x = "Month",
+       y = "Count",
+       fill = "Critical Level") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+Dari grafik ini kita dapat menyimpulkan bahwa bulan Agustus merupakan bulan dimana PM 2.5 merupakan partikel yang mendominasi diantara bulan-bulan lainnya. PM 2.5 sendiri adalah partikulat dengan ukuran terkecil yang terkandung pada polusi udara. PM 2.5 sendiri disebut-sebut sebagai partikel yang paling berbahaya dikarenakan ukurannya yang sangat kecil.Hal ini memungkinkan partikel lolos dari sistem penyaringan tubuh dan dapat memengaruhi keseluruhan kerja organ tubuh.
